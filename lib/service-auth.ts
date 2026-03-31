@@ -1,26 +1,30 @@
-import { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 
-export type ServiceAuthResult =
-  | { ok: true; email: string }
-  | { ok: false; status: number; error: string };
+/**
+ * Тот же секрет, что `SHARED_MENU_SERVICE_TOKEN` в diabalance / health-diary.
+ */
+export function getExpectedServiceToken(): string | null {
+  return process.env.SHARED_MENU_SERVICE_TOKEN ?? process.env.MENU_SERVICE_TOKEN ?? null;
+}
 
-export function authenticateServiceRequest(request: NextRequest): ServiceAuthResult {
-  const expectedToken = process.env.MENU_SERVICE_TOKEN;
-  if (!expectedToken) {
-    return { ok: false, status: 500, error: 'MENU_SERVICE_TOKEN is not configured' };
+export type ServiceAuthOk = { email: string };
+
+export function requireServiceAuth(request: Request): ServiceAuthOk | NextResponse {
+  const expected = getExpectedServiceToken();
+  if (!expected) {
+    console.error('[menu-service] SHARED_MENU_SERVICE_TOKEN is not set');
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 
-  const token =
-    request.headers.get('x-service-token') ??
-    request.headers.get('authorization')?.replace(/^Bearer\s+/i, '');
-  if (!token || token !== expectedToken) {
-    return { ok: false, status: 401, error: 'Unauthorized service token' };
+  const token = request.headers.get('x-service-token');
+  if (token !== expected) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const email = request.headers.get('x-user-email')?.trim().toLowerCase();
-  if (!email) {
-    return { ok: false, status: 400, error: 'Missing X-User-Email header' };
+  const raw = request.headers.get('x-user-email')?.trim().toLowerCase();
+  if (!raw) {
+    return NextResponse.json({ error: 'Missing user email' }, { status: 400 });
   }
 
-  return { ok: true, email };
+  return { email: raw };
 }

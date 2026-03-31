@@ -7,31 +7,23 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model UserRef {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  menuItems MenuItem[]
-}
-
+/// Пункт меню пользователя; изоляция по email (как в diabalance через userId).
 model MenuItem {
   id                  String   @id @default(cuid())
-  userRefId           String
+  userEmail           String
   name                String
   carbsPer100g        Float
-  caloriesPer100g     Float
-  proteinPer100g      Float
-  fatPer100g          Float
-  defaultPortionGrams Float   @default(100)
-  hasSugar            Boolean @default(false)
+  caloriesPer100g     Float?
+  defaultPortionGrams Float    @default(100)
+  proteinPer100g      Float?
+  fatPer100g          Float?
   recipeText          String?
+  barcode             String?
+  barcodeAliases      String[] @default([])
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 
-  userRef UserRef @relation(fields: [userRefId], references: [id], onDelete: Cascade)
-
-  @@index([userRefId])
-  @@index([userRefId, name])
+  @@unique([userEmail, barcode])
+  @@index([userEmail])
+  @@index([userEmail, name])
 }

@@ -1,4 +1,10 @@
+import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
+
+export const metadata: Metadata = {
+  title: 'menu-service',
+  description: 'Shared menu API',
+};
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (

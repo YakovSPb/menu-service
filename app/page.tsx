@@ -1,8 +1,8 @@
 export default function HomePage() {
   return (
-    <main style={{ fontFamily: 'sans-serif', padding: 24 }}>
+    <main style={{ padding: 24, fontFamily: 'system-ui' }}>
       <h1>menu-service</h1>
-      <p>Service is running.</p>
+      <p>API: <code>/api/menu</code> — заголовки <code>X-Service-Token</code>, <code>X-User-Email</code>.</p>
     </main>
   );
 }
